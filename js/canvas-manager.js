@@ -1568,7 +1568,45 @@ class CanvasManager {
   }
 
   /**
-   * Advanced Export Engine (PNG, JPG, PDF, PPTX, GIF, MP4)
+   * JSON Project Exporter & Restorer (Checklist Requirement 5)
+   */
+  createJsonBlob() {
+    const projectData = {
+      version: "1.0",
+      generator: "CardNewsStudio",
+      exportedAt: new Date().toISOString(),
+      width: this.canvasWidth,
+      height: this.canvasHeight,
+      canvas: this.fabricCanvas.toJSON()
+    };
+    const jsonStr = JSON.stringify(projectData, null, 2);
+    return new Blob([jsonStr], { type: "application/json" });
+  }
+
+  async importProjectJson(rawJson) {
+    try {
+      const data = typeof rawJson === "string" ? JSON.parse(rawJson) : rawJson;
+      const canvasData = data.canvas || data;
+
+      if (data.width && data.height) {
+        this.setCanvasSize(data.width, data.height);
+      }
+
+      return new Promise((resolve) => {
+        this.fabricCanvas.loadFromJSON(canvasData, () => {
+          this.fabricCanvas.renderAll();
+          this.saveHistory();
+          resolve(true);
+        });
+      });
+    } catch (err) {
+      console.error("Failed to import JSON:", err);
+      throw err;
+    }
+  }
+
+  /**
+   * Advanced Export Engine (PNG, JPG, PDF, PPTX, GIF, MP4, JSON)
    * With native OS file picker & direct location selection
    */
   async exportFileWithOptions(options = {}) {
@@ -1588,7 +1626,9 @@ class CanvasManager {
     // 1. Generate COMPLETE valid binary Blob FIRST (Zero empty file risk)
     let blob = null;
     try {
-      if (format === "png") {
+      if (format === "json") {
+        blob = this.createJsonBlob();
+      } else if (format === "png") {
         blob = await this.createPngBlob(transparentBg, scale);
       } else if (format === "jpg") {
         blob = await this.createJpgBlob(scale);

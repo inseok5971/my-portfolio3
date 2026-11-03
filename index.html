@@ -46,6 +46,17 @@
       </div>
 
       <div class="header-right">
+        <!-- JSON Import & Export for Project Restoration (Checklist Requirement 5) -->
+        <input type="file" id="input-json-import" accept=".json,application/json" style="display: none;" />
+        <button id="btn-json-import" class="btn-subtle" title="JSON 프로젝트 파일 불러오기 및 캔버스 복원">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          JSON 복원
+        </button>
+        <button id="btn-json-export" class="btn-subtle" title="JSON 프로젝트 백업 파일로 저장">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+          JSON 저장
+        </button>
+
         <button id="btn-download" class="btn-primary" title="고화질 이미지로 내보내기/저장">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           다운로드
@@ -92,8 +103,33 @@
         <div class="panel-content">
           <!-- 1. Templates Tab (Image 1 Style Grid) -->
           <div id="panel-templates" class="sub-panel-view">
-            <div id="templates-grid" class="templates-grid">
-              <!-- Dynamically populated from CARD_TEMPLATES -->
+            <!-- Template Creation Action (Checklist Requirement 4: 생성·수정·삭제 유지) -->
+            <div class="template-actions-box">
+              <button id="btn-save-as-template" class="btn-save-template" title="현재 작업 중인 캔버스 디자인을 내 템플릿으로 저장">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                현재 디자인을 내 템플릿으로 저장
+              </button>
+            </div>
+
+            <!-- User Saved Templates Section -->
+            <div id="sec-user-templates" class="templates-section-group" style="display: none; margin-bottom: 16px;">
+              <div class="template-section-label">
+                <span>내가 만든 템플릿</span>
+                <span id="user-template-count" class="badge-count">0</span>
+              </div>
+              <div id="user-templates-grid" class="templates-grid user-grid">
+                <!-- Dynamically populated from localStorage -->
+              </div>
+            </div>
+
+            <!-- Built-in Recommended Templates -->
+            <div class="templates-section-group">
+              <div class="template-section-label">
+                <span>기본 추천 템플릿</span>
+              </div>
+              <div id="templates-grid" class="templates-grid">
+                <!-- Dynamically populated from CARD_TEMPLATES -->
+              </div>
             </div>
           </div>
 
@@ -1081,6 +1117,22 @@
                   <span class="format-opt-title">GIF</span>
                 </div>
                 <div class="format-opt-desc">소리 없이 움직이는 이미지</div>
+              </div>
+            </div>
+            <div class="format-opt-check" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- JSON (프로젝트 복원용 백업 파일) -->
+          <div class="format-option-item" data-format="json" data-name="JSON (프로젝트 원본)" data-ext="json" data-mime="application/json">
+            <div class="format-opt-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              <div class="format-opt-text">
+                <div class="format-opt-title-row">
+                  <span class="format-opt-title">JSON</span>
+                </div>
+                <div class="format-opt-desc">나중에 100% 그대로 복원 가능한 원본 파일</div>
               </div>
             </div>
             <div class="format-opt-check" style="display: none;">

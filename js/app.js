@@ -66,6 +66,174 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   renderTemplatesList();
 
+  // 4-1. User Saved Templates Management (Checklist Requirement 4: 생성·수정·삭제 영구 유지)
+  const STORAGE_KEY_USER_TPL = "cardnews_studio_user_templates";
+  const userTemplatesSec = document.getElementById("sec-user-templates");
+  const userTemplatesGrid = document.getElementById("user-templates-grid");
+  const userTemplateCountBadge = document.getElementById("user-template-count");
+  const btnSaveAsTemplate = document.getElementById("btn-save-as-template");
+
+  function getUserTemplates() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_USER_TPL);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.warn("Failed to load user templates from localStorage:", e);
+      return [];
+    }
+  }
+
+  function setUserTemplates(templates) {
+    try {
+      localStorage.setItem(STORAGE_KEY_USER_TPL, JSON.stringify(templates));
+    } catch (e) {
+      console.warn("Failed to save user templates to localStorage:", e);
+    }
+  }
+
+  function renderUserTemplatesList() {
+    if (!userTemplatesGrid) return;
+    const list = getUserTemplates();
+    userTemplatesGrid.innerHTML = "";
+
+    if (list.length === 0) {
+      if (userTemplatesSec) userTemplatesSec.style.display = "none";
+      return;
+    }
+
+    if (userTemplatesSec) userTemplatesSec.style.display = "block";
+    if (userTemplateCountBadge) userTemplateCountBadge.textContent = list.length;
+
+    list.forEach(tpl => {
+      const card = document.createElement("div");
+      card.className = "user-template-card";
+      card.setAttribute("data-id", tpl.id);
+
+      card.innerHTML = `
+        <img class="user-template-thumb" src="${tpl.thumbnail || ''}" alt="${tpl.name}" />
+        <div class="user-template-info">
+          <span class="user-template-name" title="${tpl.name}">${tpl.name}</span>
+          <span style="font-size: 10px; color: #00c4cc; font-weight: 700;">내 템플릿</span>
+        </div>
+        <div class="user-template-actions">
+          <button class="user-template-action-btn edit-btn" title="템플릿 수정 (현재 디자인으로 덮어쓰기 또는 이름 변경)">✏️</button>
+          <button class="user-template-action-btn delete-btn" title="템플릿 삭제">✕</button>
+        </div>
+      `;
+
+      // 1. 불러오기 (Read)
+      card.addEventListener("click", () => {
+        cm.setCanvasSize(tpl.width || 1080, tpl.height || 1080);
+        cm.fabricCanvas.loadFromJSON(tpl.canvas, () => {
+          cm.fabricCanvas.renderAll();
+          cm.saveHistory();
+          showToast(`'${tpl.name}' 템플릿을 불러왔습니다. 자유롭게 수정하세요!`, "success");
+        });
+      });
+
+      // 2. 수정 (Update): 현재 캔버스 디자인으로 덮어쓰거나 이름 변경
+      const editBtn = card.querySelector(".edit-btn");
+      if (editBtn) {
+        editBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const choice = confirm(`'${tpl.name}' 템플릿을 현재 작업 중인 캔버스 디자인으로 덮어쓰시겠습니까?\n\n- 확인: 현재 캔버스 디자인으로 템플릿 수정 저장\n- 취소: 템플릿 이름만 변경`);
+          if (choice) {
+            // 현재 캔버스 디자인으로 덮어쓰기
+            const canvasEl = cm.fabricCanvas.lowerCanvasEl || cm.fabricCanvas.getElement();
+            const thumbCanvas = document.createElement("canvas");
+            thumbCanvas.width = 240;
+            thumbCanvas.height = Math.round(240 * (cm.canvasHeight / cm.canvasWidth));
+            const thumbCtx = thumbCanvas.getContext("2d");
+            thumbCtx.drawImage(canvasEl, 0, 0, thumbCanvas.width, thumbCanvas.height);
+            const thumbnailDataUrl = thumbCanvas.toDataURL("image/jpeg", 0.85);
+
+            tpl.thumbnail = thumbnailDataUrl;
+            tpl.canvas = cm.fabricCanvas.toJSON();
+            tpl.width = cm.canvasWidth;
+            tpl.height = cm.canvasHeight;
+            tpl.updatedAt = new Date().toISOString();
+
+            const currentList = getUserTemplates();
+            const idx = currentList.findIndex(t => t.id === tpl.id);
+            if (idx !== -1) {
+              currentList[idx] = tpl;
+              setUserTemplates(currentList);
+              renderUserTemplatesList();
+              showToast(`'${tpl.name}' 템플릿이 현재 디자인으로 수정되었습니다!`, "success");
+            }
+          } else {
+            // 이름만 변경
+            const newName = prompt("변경할 새 템플릿 이름을 입력해주세요:", tpl.name);
+            if (newName && newName.trim() && newName.trim() !== tpl.name) {
+              tpl.name = newName.trim();
+              const currentList = getUserTemplates();
+              const idx = currentList.findIndex(t => t.id === tpl.id);
+              if (idx !== -1) {
+                currentList[idx] = tpl;
+                setUserTemplates(currentList);
+                renderUserTemplatesList();
+                showToast(`템플릿 이름이 '${tpl.name}'(으)로 변경되었습니다!`, "success");
+              }
+            }
+          }
+        });
+      }
+
+      // 3. 삭제 (Delete)
+      const delBtn = card.querySelector(".delete-btn");
+      if (delBtn) {
+        delBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (confirm(`'${tpl.name}' 템플릿을 삭제하시겠습니까?`)) {
+            const updated = getUserTemplates().filter(t => t.id !== tpl.id);
+            setUserTemplates(updated);
+            renderUserTemplatesList();
+            showToast("템플릿이 삭제되었습니다.");
+          }
+        });
+      }
+
+      userTemplatesGrid.appendChild(card);
+    });
+  }
+
+  // Save current canvas as new template (생성 기능)
+  if (btnSaveAsTemplate) {
+    btnSaveAsTemplate.addEventListener("click", () => {
+      const titleInput = document.getElementById("doc-title");
+      const currentTitle = (titleInput && titleInput.value.trim()) || "나만의 카드뉴스";
+      const templateName = prompt("새 템플릿의 이름을 입력해주세요:", currentTitle);
+      if (!templateName || !templateName.trim()) return;
+
+      // Generate thumbnail
+      const canvasEl = cm.fabricCanvas.lowerCanvasEl || cm.fabricCanvas.getElement();
+      const thumbCanvas = document.createElement("canvas");
+      thumbCanvas.width = 240;
+      thumbCanvas.height = Math.round(240 * (cm.canvasHeight / cm.canvasWidth));
+      const thumbCtx = thumbCanvas.getContext("2d");
+      thumbCtx.drawImage(canvasEl, 0, 0, thumbCanvas.width, thumbCanvas.height);
+      const thumbnailDataUrl = thumbCanvas.toDataURL("image/jpeg", 0.85);
+
+      const newTemplate = {
+        id: "user_" + Date.now(),
+        name: templateName.trim(),
+        createdAt: new Date().toISOString(),
+        width: cm.canvasWidth,
+        height: cm.canvasHeight,
+        thumbnail: thumbnailDataUrl,
+        canvas: cm.fabricCanvas.toJSON()
+      };
+
+      const existing = getUserTemplates();
+      existing.unshift(newTemplate);
+      setUserTemplates(existing);
+      renderUserTemplatesList();
+      showToast(`'${newTemplate.name}' 템플릿이 성공적으로 저장되었습니다!`, "success");
+    });
+  }
+
+  renderUserTemplatesList();
+
   // 5. Sidebar Tab Switching
   const navTabs = document.querySelectorAll(".nav-tab-btn");
   const panelContainers = document.querySelectorAll(".sub-panel-view");
@@ -635,6 +803,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // JSON format info adjustments
+      const scaleRow = selectDownloadScale ? selectDownloadScale.closest(".download-form-group") : null;
+      if (scaleRow) {
+        if (format === "json") {
+          scaleRow.style.display = "none";
+        } else {
+          scaleRow.style.display = "block";
+        }
+      }
+
       closeFormatDropdown();
     });
   });
@@ -692,6 +870,72 @@ document.addEventListener("DOMContentLoaded", () => {
         btnExecuteDownload.disabled = false;
         btnExecuteDownload.innerHTML = originalText;
       }
+    });
+  }
+
+  // 15-1. Top Header JSON Import & Export (Checklist Requirement 5: JSON 복원 및 원본 안전)
+  const btnJsonImport = document.getElementById("btn-json-import");
+  const btnJsonExport = document.getElementById("btn-json-export");
+  const inputJsonImport = document.getElementById("input-json-import");
+
+  if (btnJsonExport) {
+    btnJsonExport.addEventListener("click", async () => {
+      const titleInput = document.getElementById("doc-title");
+      const currentTitle = (titleInput && titleInput.value.trim()) || "카드뉴스_프로젝트";
+      try {
+        await cm.exportFileWithOptions({
+          format: "json",
+          fileName: currentTitle,
+          extension: "json",
+          mimeType: "application/json"
+        });
+      } catch (err) {
+        console.error("JSON Export error:", err);
+        showToast("JSON 파일 저장 실패: " + (err.message || err), "error");
+      }
+    });
+  }
+
+  if (btnJsonImport && inputJsonImport) {
+    btnJsonImport.addEventListener("click", () => {
+      inputJsonImport.value = "";
+      inputJsonImport.click();
+    });
+
+    inputJsonImport.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (!file.name.toLowerCase().endsWith(".json") && file.type !== "application/json") {
+        showToast("올바른 JSON 프로젝트 백업 파일을 선택해주세요.", "error");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const rawContent = event.target.result;
+          await cm.importProjectJson(rawContent);
+
+          // Update title if available
+          const fileNameWithoutExt = file.name.replace(/\.json$/i, "");
+          const titleInput = document.getElementById("doc-title");
+          if (titleInput && fileNameWithoutExt) {
+            titleInput.value = fileNameWithoutExt;
+          }
+
+          showToast("JSON 프로젝트가 캔버스에 100% 성공적으로 복원되었습니다!", "success");
+        } catch (err) {
+          console.error("JSON Import restoration error:", err);
+          showToast("JSON 복원 실패: 파일이 손상되었거나 호환되지 않는 형식입니다.", "error");
+        }
+      };
+
+      reader.onerror = () => {
+        showToast("파일을 읽는 중 문제가 발생했습니다.", "error");
+      };
+
+      reader.readAsText(file);
     });
   }
 
