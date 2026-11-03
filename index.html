@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카드뉴스 템플릿 스튜디오</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Fabric.js Local & CDN Fallback -->
+  <script src="js/fabric.min.js"></script>
+  <script>
+    if (typeof fabric === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"><\/script>');
+    }
+  </script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-left">
+        <div class="logo-badge" title="카드뉴스 스튜디오">
+          <div class="logo-icon">C</div>
+          <span>CardNews</span>
+        </div>
+
+        <div class="title-input-wrapper">
+          <input type="text" id="doc-title" class="doc-title-input" value="캐릭터 카드뉴스 템플릿" placeholder="제목을 입력해주세요." />
+        </div>
+
+        <!-- Canvas Size Selector Trigger (Image 3 Dropdown Entry) -->
+        <button id="btn-size-trigger" class="size-trigger-btn" title="캔버스 크기 조정">
+          <span id="current-size-label">1080×1080 px</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+
+        <!-- Undo / Redo -->
+        <div class="history-btns">
+          <button id="btn-undo" class="icon-btn" title="실행 취소 (Cmd+Z)" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+          </button>
+          <button id="btn-redo" class="icon-btn" title="다시 실행 (Cmd+Shift+Z)" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button id="btn-download" class="btn-primary" title="고화질 이미지로 내보내기/저장">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          다운로드
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-workspace">
+      
+      <!-- Left Icon Navigation Bar -->
+      <nav class="nav-sidebar">
+        <button class="nav-tab-btn active" data-tab="templates" title="템플릿">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          템플릿
+        </button>
+        <button class="nav-tab-btn" data-tab="text" title="텍스트">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+          텍스트
+        </button>
+        <button class="nav-tab-btn" data-tab="elements" title="요소 (도형, 선, 아이콘)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
+          요소
+        </button>
+        <button class="nav-tab-btn" data-tab="charts" title="차트 및 그래프">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+          차트
+        </button>
+        <button class="nav-tab-btn" data-tab="uploads" title="사진 업로드">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          업로드
+        </button>
+      </nav>
+
+      <!-- Sub Panel Drawer (Left Sidebar) -->
+      <aside class="sub-panel">
+        <div class="panel-header">
+          <div class="panel-header-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span id="current-panel-title">비슷한 템플릿</span>
+          </div>
+        </div>
+
+        <div class="panel-content">
+          <!-- 1. Templates Tab (Image 1 Style Grid) -->
+          <div id="panel-templates" class="sub-panel-view">
+            <div id="templates-grid" class="templates-grid">
+              <!-- Dynamically populated from CARD_TEMPLATES -->
+            </div>
+          </div>
+
+          <!-- 2. Text Tab -->
+          <div id="panel-text" class="sub-panel-view" style="display: none;">
+            <div class="text-add-list">
+              <button class="add-text-btn" data-type="title">
+                <span class="add-title-text">제목 텍스트 추가</span>
+                <span style="color:#00c4cc; font-weight:700;">+</span>
+              </button>
+              <button class="add-text-btn" data-type="subtitle">
+                <span class="add-subtitle-text">부제목 텍스트 추가</span>
+                <span style="color:#00c4cc; font-weight:700;">+</span>
+              </button>
+              <button class="add-text-btn" data-type="body">
+                <span class="add-body-text">본문 텍스트 추가</span>
+                <span style="color:#00c4cc; font-weight:700;">+</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Elements Tab (Shapes, Lines, Icons - Images 3, 4, 5) -->
+          <div id="panel-elements" class="sub-panel-view" style="display: none;">
+            <!-- Sub-category Tabs -->
+            <div class="sub-category-tabs">
+              <button class="sub-cat-btn active" data-cat="all">전체</button>
+              <button class="sub-cat-btn" data-cat="shapes">도형</button>
+              <button class="sub-cat-btn" data-cat="lines">선</button>
+              <button class="sub-cat-btn" data-cat="icons">아이콘</button>
+            </div>
+
+            <!-- Shapes Section (Images 3, 4, 5) -->
+            <div id="sec-shapes" class="element-category-section">
+              
+              <!-- 3-1. Basic Shapes (Image 3) -->
+              <div class="section-subhead">
+                <span>기본 도형 (Basic Shapes)</span>
+              </div>
+              <div class="shapes-catalog-grid">
+                <button class="shape-card-btn" data-shape="square" title="정사각형">
+                  <div style="width: 34px; height: 34px; background: #64748b; border-radius: 2px;"></div>
+                </button>
+                <button class="shape-card-btn" data-shape="circle" title="원형">
+                  <div style="width: 34px; height: 34px; background: #64748b; border-radius: 50%;"></div>
+                </button>
+                <button class="shape-card-btn" data-shape="triangle" title="정삼각형">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><polygon points="17,4 32,30 2,30" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="diamond" title="마름모">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><polygon points="17,2 32,17 17,32 2,17" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="star-5" title="별">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><polygon points="17,2 21,12 32,12 23,19 26,30 17,23 8,30 11,19 2,12 13,12" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="heart" title="하트">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><path d="M17 28 L5 16 A 7 7 0 0 1 17 9 A 7 7 0 0 1 29 16 Z" fill="#64748b"></path></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="capsule" title="알약 캡슐">
+                  <div style="width: 44px; height: 24px; background: #64748b; border-radius: 12px;"></div>
+                </button>
+                <button class="shape-card-btn" data-shape="speech-bubble-circle" title="원형 말풍선">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="15" r="12" fill="#64748b"></circle><polygon points="12,23 8,29 18,25" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="arrow-block" title="블록 화살표">
+                  <svg width="36" height="28" viewBox="0 0 36 28"><polygon points="4,9 20,9 20,3 32,14 20,25 20,19 4,19" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="donut" title="도넛 링">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="none" stroke="#64748b" stroke-width="7"></circle></svg>
+                </button>
+              </div>
+
+              <!-- 3-2. Speech Bubbles & Badges (Image 3) -->
+              <div class="section-subhead">
+                <span>말풍선 및 설명</span>
+              </div>
+              <div class="shapes-catalog-grid">
+                <button class="shape-card-btn" data-shape="bubble-rect" title="사각 말풍선">
+                  <svg width="38" height="32" viewBox="0 0 38 32"><rect x="4" y="2" width="30" height="22" rx="4" fill="#64748b"></rect><polygon points="10,24 6,30 18,24" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="bubble-round-rect" title="둥근 사각 말풍선">
+                  <svg width="38" height="32" viewBox="0 0 38 32"><rect x="4" y="2" width="30" height="22" rx="8" fill="#64748b"></rect><polygon points="16,24 19,30 22,24" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="postit" title="접힌 포스트잇">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><path d="M 4,4 L 30,4 L 30,22 L 22,30 L 4,30 Z" fill="#64748b"></path><polygon points="22,22 30,22 22,30" fill="#94a3b8"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="ribbon-banner" title="리본 배너">
+                  <svg width="44" height="24" viewBox="0 0 44 24"><polygon points="6,2 38,2 34,12 38,22 6,22 10,12" fill="#64748b"></polygon></svg>
+                </button>
+              </div>
+
+              <!-- 4. Arrows & Stars (Image 4) -->
+              <div class="section-subhead">
+                <span>기본 화살표 & 별 장식 (Image 4)</span>
+              </div>
+              <div class="shapes-catalog-grid">
+                <button class="shape-card-btn" data-shape="arrow-right" title="오른쪽 화살표">
+                  <svg width="36" height="24" viewBox="0 0 36 24"><line x1="4" y1="12" x2="30" y2="12" stroke="#64748b" stroke-width="4"></line><polygon points="26,6 34,12 26,18" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="arrow-left" title="왼쪽 화살표">
+                  <svg width="36" height="24" viewBox="0 0 36 24"><line x1="6" y1="12" x2="32" y2="12" stroke="#64748b" stroke-width="4"></line><polygon points="10,6 2,12 10,18" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="arrow-up" title="위쪽 화살표">
+                  <svg width="24" height="34" viewBox="0 0 24 34"><line x1="12" y1="30" x2="12" y2="6" stroke="#64748b" stroke-width="4"></line><polygon points="6,10 12,2 18,10" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="arrow-down" title="아래쪽 화살표">
+                  <svg width="24" height="34" viewBox="0 0 24 34"><line x1="12" y1="4" x2="12" y2="28" stroke="#64748b" stroke-width="4"></line><polygon points="6,24 12,32 18,24" fill="#64748b"></polygon></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="star-4" title="4각 반짝이 별">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><path d="M 17,2 Q 17,17 32,17 Q 17,17 17,32 Q 17,17 2,17 Q 17,17 17,2 Z" fill="#64748b"></path></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="flower-4" title="네잎클로버/꽃잎">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="12" cy="12" r="7" fill="#64748b"></circle><circle cx="22" cy="12" r="7" fill="#64748b"></circle><circle cx="12" cy="22" r="7" fill="#64748b"></circle><circle cx="22" cy="22" r="7" fill="#64748b"></circle></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="sparkle" title="샤이니 스파클">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><path d="M17,4 L20,14 L30,17 L20,20 L17,30 L14,20 L4,17 L14,14 Z" fill="#64748b"></path></svg>
+                </button>
+              </div>
+
+              <!-- 5. Tickets, Coupons & Flowchart (Image 5) -->
+              <div class="section-subhead">
+                <span>쿠폰 모양 & 순서도 기호 (Image 5)</span>
+              </div>
+              <div class="shapes-catalog-grid">
+                <button class="shape-card-btn" data-shape="coupon-cut" title="홈 파인 티켓 쿠폰">
+                  <svg width="40" height="26" viewBox="0 0 44 28"><path d="M 2,2 L 42,2 L 42,10 A 4,4 0 0,0 42,18 L 42,26 L 2,26 L 2,18 A 4,4 0 0,0 2,10 Z" fill="#64748b"></path></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="cylinder" title="원통 (실린더/DB)">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><ellipse cx="17" cy="8" rx="14" ry="6" fill="#64748b"></ellipse><rect x="3" y="8" width="28" height="18" fill="#64748b"></rect><ellipse cx="17" cy="26" rx="14" ry="6" fill="#475569"></ellipse></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="flow-document" title="문서형 물결 사각">
+                  <svg width="34" height="34" viewBox="0 0 34 34"><path d="M 4,4 L 30,4 L 30,26 Q 22,20 17,26 Q 10,32 4,26 Z" fill="#64748b"></path></svg>
+                </button>
+                <button class="shape-card-btn" data-shape="parallelogram" title="평행사변형">
+                  <svg width="38" height="26" viewBox="0 0 38 26"><polygon points="10,2 36,2 28,24 2,24" fill="#64748b"></polygon></svg>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Lines Section -->
+            <div id="sec-lines" class="element-category-section" style="margin-top: 18px;">
+              <div class="section-subhead">
+                <span>선 (Lines)</span>
+              </div>
+              <div class="lines-grid">
+                <button class="line-item-btn" data-line="solid" title="실선">
+                  <svg width="100" height="20"><line x1="10" y1="10" x2="90" y2="10" stroke="#1e293b" stroke-width="3"></line></svg>
+                </button>
+                <button class="line-item-btn" data-line="dashed" title="대시 점선">
+                  <svg width="100" height="20"><line x1="10" y1="10" x2="90" y2="10" stroke="#1e293b" stroke-width="3" stroke-dasharray="6,4"></line></svg>
+                </button>
+                <button class="line-item-btn" data-line="dotted" title="촘촘한 점선">
+                  <svg width="100" height="20"><line x1="10" y1="10" x2="90" y2="10" stroke="#1e293b" stroke-width="3" stroke-dasharray="2,3"></line></svg>
+                </button>
+                <button class="line-item-btn" data-line="arrow-right" title="오른쪽 화살표선">
+                  <svg width="100" height="20"><line x1="10" y1="10" x2="85" y2="10" stroke="#1e293b" stroke-width="2.5"></line><polygon points="85,6 93,10 85,14" fill="#1e293b"></polygon></svg>
+                </button>
+                <button class="line-item-btn" data-line="wave" title="물결선">
+                  <svg width="100" height="20"><path d="M 10,10 Q 20,4 30,10 T 50,10 T 70,10 T 90,10" fill="none" stroke="#0077ff" stroke-width="2.5"></path></svg>
+                </button>
+                <button class="line-item-btn" data-line="zigzag" title="지그재그선">
+                  <svg width="100" height="20"><path d="M 10,13 L 20,7 L 30,13 L 40,7 L 50,13 L 60,7 L 70,13 L 80,7 L 90,13" fill="none" stroke="#1e293b" stroke-width="2"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Icons Section -->
+            <div id="sec-icons" class="element-category-section" style="margin-top: 18px;">
+              <div class="section-subhead">
+                <span>아이콘 (Icons)</span>
+              </div>
+              <div class="icons-catalog-grid">
+                <button class="icon-item-btn" data-icon="note-pencil" title="작성 / 메모">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  <span class="icon-item-label">메모</span>
+                </button>
+                <button class="icon-item-btn" data-icon="bulb" title="아이디어 / 전구">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>
+                  <span class="icon-item-label">아이디어</span>
+                </button>
+                <button class="icon-item-btn" data-icon="check-circle" title="체크 / 완료">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <span class="icon-item-label">체크</span>
+                </button>
+                <button class="icon-item-btn" data-icon="search" title="검색 / 돋보기">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <span class="icon-item-label">검색</span>
+                </button>
+                <button class="icon-item-btn" data-icon="users" title="팀 / 사용자">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                  <span class="icon-item-label">팀/조직</span>
+                </button>
+                <button class="icon-item-btn" data-icon="chat" title="대화 / 말풍선">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  <span class="icon-item-label">대화</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Charts Tab (Images 1 & 2 Style - Extensive Categories) -->
+          <div id="panel-charts" class="sub-panel-view" style="display: none;">
+            
+            <!-- Search bar inside Charts panel -->
+            <div class="drawer-search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="chart-search-input" placeholder="차트 검색..." />
+            </div>
+
+            <!-- 1. 플로우차트 (Image 2) -->
+            <div class="section-subhead">
+              <span>플로우차트</span>
+              <span class="subhead-more-link">더보기</span>
+            </div>
+            <div class="charts-grid-row">
+              <div class="chart-card-item" data-chart="pyramid-flow" title="추출 삼각형">
+                <svg width="44" height="40" viewBox="0 0 44 40"><polygon points="22,4 40,36 4,36" fill="#cbd5e1" stroke="#334155" stroke-width="1.8"></polygon><text x="22" y="27" font-size="8" font-weight="700" text-anchor="middle" fill="#1e293b">추출</text></svg>
+                <span class="chart-card-label">추출</span>
+              </div>
+              <div class="chart-card-item" data-chart="parallelogram" title="평행사변형 데이터">
+                <svg width="48" height="36" viewBox="0 0 48 36"><polygon points="12,5 44,5 36,31 4,31" fill="#cbd5e1" stroke="#334155" stroke-width="1.8"></polygon><text x="24" y="21" font-size="8" font-weight="700" text-anchor="middle" fill="#1e293b">데이터</text></svg>
+                <span class="chart-card-label">데이터</span>
+              </div>
+              <div class="chart-card-item" data-chart="flow-rect-round" title="본문 사각형 (둥근 모서리)">
+                <svg width="40" height="40" viewBox="0 0 40 40"><path d="M4,4 L30,4 Q36,4 36,10 L36,36 L4,36 Z" fill="#cbd5e1" stroke="#334155" stroke-width="1.8"></path><text x="20" y="22" font-size="6" font-weight="700" text-anchor="middle" fill="#1e293b">본문 내용</text></svg>
+                <span class="chart-card-label">본문 내용</span>
+              </div>
+              <div class="chart-card-item" data-chart="flow-rect-plain" title="본문 사각형 (직각)">
+                <svg width="40" height="40" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#cbd5e1" stroke="#334155" stroke-width="1.8"></rect><text x="20" y="22" font-size="6" font-weight="700" text-anchor="middle" fill="#1e293b">본문 입력</text></svg>
+                <span class="chart-card-label">본문 입력</span>
+              </div>
+              <div class="chart-card-item" data-chart="flow-circle" title="커넥터 (원형)">
+                <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#cbd5e1" stroke="#334155" stroke-width="1.8"></circle><text x="20" y="23" font-size="7" font-weight="700" text-anchor="middle" fill="#1e293b">커넥터</text></svg>
+                <span class="chart-card-label">커넥터</span>
+              </div>
+            </div>
+
+            <!-- 2. 차트 (Image 2 - 실시간 양/수치 조절) -->
+            <div class="section-subhead">
+              <span>차트</span>
+              <span class="subhead-more-link">더보기</span>
+            </div>
+            <div class="charts-grid-row">
+              <div class="chart-card-item" data-chart="bar-multi" title="컬러 막대 차트 (실시간 수치 변경)">
+                <svg width="48" height="38" viewBox="0 0 54 40"><rect x="5" y="18" width="7" height="18" rx="2" fill="#f43f5e"></rect><rect x="16" y="8" width="7" height="28" rx="2" fill="#00c4cc"></rect><rect x="27" y="14" width="7" height="22" rx="2" fill="#3b82f6"></rect><rect x="38" y="4" width="7" height="32" rx="2" fill="#f59e0b"></rect></svg>
+                <span class="chart-card-label">컬러 막대</span>
+              </div>
+              <div class="chart-card-item" data-chart="chart-line" title="꺾은선 차트">
+                <svg width="48" height="38" viewBox="0 0 54 40"><polyline points="6,30 18,22 32,16 46,6" fill="none" stroke="#3b82f6" stroke-width="2.5"></polyline><circle cx="6" cy="30" r="3" fill="#f43f5e"></circle><circle cx="18" cy="22" r="3" fill="#f43f5e"></circle><circle cx="32" cy="16" r="3" fill="#f43f5e"></circle><circle cx="46" cy="6" r="3" fill="#f43f5e"></circle></svg>
+                <span class="chart-card-label">꺾은선</span>
+              </div>
+              <div class="chart-card-item" data-chart="pie-four" title="4색 파이 차트">
+                <svg width="38" height="38" viewBox="0 0 40 40"><path d="M20,20 L20,3 A17,17 0 0,1 37,20 Z" fill="#3b82f6"></path><path d="M20,20 L37,20 A17,17 0 0,1 20,37 Z" fill="#f59e0b"></path><path d="M20,20 L20,37 A17,17 0 0,1 3,20 Z" fill="#10b981"></path><path d="M20,20 L3,20 A17,17 0 0,1 20,3 Z" fill="#f43f5e"></path></svg>
+                <span class="chart-card-label">4색 파이</span>
+              </div>
+              <div class="chart-card-item" data-chart="bar-line-combo" title="막대+선 복합 차트">
+                <svg width="48" height="38" viewBox="0 0 50 40"><rect x="8" y="16" width="9" height="20" fill="#f43f5e" rx="1"></rect><rect x="24" y="8" width="9" height="28" fill="#f43f5e" rx="1"></rect><polyline points="12,18 28,10 44,4" fill="none" stroke="#f59e0b" stroke-width="2"></polyline></svg>
+                <span class="chart-card-label">복합 차트</span>
+              </div>
+            </div>
+
+            <!-- 3. 게이지 차트 (Image 2 - 실시간 0%~100% 퍼센트 동적 반응) -->
+            <div class="section-subhead">
+              <span>게이지 차트</span>
+              <span class="subhead-more-link">더보기</span>
+            </div>
+            <div class="charts-grid-row">
+              <div class="chart-card-item" data-chart="gauge-vertical" title="수직 바 게이지 (퍼센트 변경)">
+                <svg width="22" height="42" viewBox="0 0 24 44"><rect x="4" y="2" width="16" height="38" rx="8" fill="#e2e8f0"></rect><rect x="4" y="12" width="16" height="28" rx="8" fill="#00c4cc"></rect><text x="12" y="43" font-size="6" font-weight="800" text-anchor="middle" fill="#00888f">75%</text></svg>
+                <span class="chart-card-label">수직 75%</span>
+              </div>
+              <div class="chart-card-item" data-chart="gauge-circle" title="원형 도넛 게이지 (퍼센트 변경)">
+                <svg width="42" height="42" viewBox="0 0 44 44"><circle cx="22" cy="22" r="16" fill="none" stroke="#e2e8f0" stroke-width="5"></circle><circle cx="22" cy="22" r="16" fill="none" stroke="#00c4cc" stroke-width="5" stroke-dasharray="75 25" stroke-linecap="round"></circle><text x="22" y="26" font-size="9" font-weight="900" text-anchor="middle" fill="#00888f">75%</text></svg>
+                <span class="chart-card-label">도넛 75%</span>
+              </div>
+              <div class="chart-card-item" data-chart="gauge-horizontal" title="수평 프로그레스 바 (퍼센트 변경)">
+                <svg width="54" height="26" viewBox="0 0 70 26"><rect x="2" y="7" width="66" height="12" rx="6" fill="#e2e8f0"></rect><rect x="2" y="7" width="48" height="12" rx="6" fill="#00c4cc"></rect><text x="56" y="16" font-size="7" font-weight="800" fill="#00888f">75%</text></svg>
+                <span class="chart-card-label">수평 바</span>
+              </div>
+              <div class="chart-card-item" data-chart="gauge-semi" title="반원 게이지 (퍼센트 변경)">
+                <svg width="44" height="32" viewBox="0 0 48 34"><path d="M6,28 A18,18 0 0,1 42,28" fill="none" stroke="#e2e8f0" stroke-width="6" stroke-linecap="round"></path><path d="M6,28 A18,18 0 0,1 36,13" fill="none" stroke="#00c4cc" stroke-width="6" stroke-linecap="round"></path><text x="24" y="26" font-size="9" font-weight="900" text-anchor="middle" fill="#00888f">75%</text></svg>
+                <span class="chart-card-label">반원 75%</span>
+              </div>
+            </div>
+
+            <!-- 4. 인포그래픽 디자인 (Image 2) -->
+            <div class="section-subhead">
+              <span>인포그래픽 디자인</span>
+              <span class="subhead-more-link">더보기</span>
+            </div>
+            <div class="charts-grid-row">
+              <div class="chart-card-item" data-chart="info-circle-steps" title="원형 3단계 연결">
+                <svg width="50" height="32" viewBox="0 0 60 36"><circle cx="12" cy="18" r="10" fill="#818cf8" opacity="0.8"></circle><circle cx="30" cy="18" r="12" fill="#6366f1"></circle><circle cx="48" cy="18" r="10" fill="#818cf8" opacity="0.8"></circle></svg>
+                <span class="chart-card-label">원형 3단계</span>
+              </div>
+              <div class="chart-card-item" data-chart="info-timeline-pin" title="타임라인 로드맵">
+                <svg width="50" height="32" viewBox="0 0 60 36"><line x1="6" y1="18" x2="54" y2="18" stroke="#1e293b" stroke-width="2.5"></line><circle cx="16" cy="18" r="5" fill="#ef4444"></circle><circle cx="30" cy="18" r="5" fill="#ef4444"></circle><circle cx="44" cy="18" r="5" fill="#ef4444"></circle></svg>
+                <span class="chart-card-label">핀 로드맵</span>
+              </div>
+              <div class="chart-card-item" data-chart="info-cycle-3" title="3단계 순환 다이어그램">
+                <svg width="44" height="36" viewBox="0 0 50 40"><circle cx="16" cy="14" r="8" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5"></circle><circle cx="34" cy="14" r="8" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"></circle><circle cx="25" cy="28" r="8" fill="#fed7aa" stroke="#ea580c" stroke-width="1.5"></circle></svg>
+                <span class="chart-card-label">3단계 순환</span>
+              </div>
+              <div class="chart-card-item" data-chart="info-diamond-chain" title="다이아몬드 체인">
+                <svg width="52" height="32" viewBox="0 0 60 36"><line x1="6" y1="18" x2="54" y2="18" stroke="#64748b" stroke-width="2"></line><polygon points="18,12 24,18 18,24 12,18" fill="#99f6e4" stroke="#0d9488"></polygon><polygon points="32,12 38,18 32,24 26,18" fill="#a5f3fc" stroke="#0891b2"></polygon><polygon points="46,12 52,18 46,24 40,18" fill="#cbd5e1" stroke="#475569"></polygon></svg>
+                <span class="chart-card-label">체인 프로세스</span>
+              </div>
+            </div>
+
+            <!-- 5. 스마트 오브젝트 (Image 1) -->
+            <div class="section-subhead">
+              <span>스마트 오브젝트</span>
+              <span class="subhead-more-link">더보기</span>
+            </div>
+            <div class="charts-grid-row">
+              <div class="chart-card-item" data-chart="smart-pyramid-3" title="3단 역피라미드 키워드">
+                <svg width="46" height="38" viewBox="0 0 50 42"><polygon points="4,5 46,5 25,39" fill="none"></polygon><polygon points="4,5 46,5 39,16 11,16" fill="#ef4444"></polygon><polygon points="11,16 39,16 32,27 18,27" fill="#3b82f6"></polygon><polygon points="18,27 32,27 25,39" fill="#facc15"></polygon></svg>
+                <span class="chart-card-label">피라미드 키워드</span>
+              </div>
+              <div class="chart-card-item" data-chart="smart-banner-3" title="3단 리스트 배너">
+                <svg width="48" height="36" viewBox="0 0 54 40"><rect x="6" y="4" width="42" height="9" rx="3" fill="#ef4444"></rect><rect x="6" y="16" width="42" height="9" rx="3" fill="#3b82f6"></rect><rect x="6" y="28" width="42" height="9" rx="3" fill="#facc15"></rect></svg>
+                <span class="chart-card-label">3단 배너 박스</span>
+              </div>
+              <div class="chart-card-item" data-chart="smart-hub-spoke" title="중심 원형 허브 & 3위성 노드">
+                <svg width="44" height="40" viewBox="0 0 48 44"><line x1="24" y1="22" x2="38" y2="10" stroke="#cbd5e1" stroke-width="2"></line><line x1="24" y1="22" x2="38" y2="34" stroke="#cbd5e1" stroke-width="2"></line><line x1="24" y1="22" x2="10" y2="22" stroke="#cbd5e1" stroke-width="2"></line><circle cx="24" cy="22" r="8" fill="#ef4444"></circle><circle cx="38" cy="10" r="6" fill="#3b82f6"></circle><circle cx="38" cy="34" r="6" fill="#64748b"></circle><circle cx="10" cy="22" r="6" fill="#facc15"></circle></svg>
+                <span class="chart-card-label">허브 & 스포크</span>
+              </div>
+              <div class="chart-card-item" data-chart="smart-arrow-process" title="가로 화살표 3단계 프로세스">
+                <svg width="52" height="30" viewBox="0 0 60 32"><polygon points="2,8 18,8 24,16 18,24 2,24" fill="#ef4444"></polygon><polygon points="20,8 36,8 42,16 36,24 20,24" fill="#3b82f6"></polygon><polygon points="38,8 54,8 60,16 54,24 38,24" fill="#eab308"></polygon></svg>
+                <span class="chart-card-label">화살표 프로세스</span>
+              </div>
+            </div>
+
+            <!-- 6. 타임라인 / 연혁도 (Image 1) -->
+            <div class="section-subhead">
+              <span>타임라인/연혁도</span>
+              <span class="subhead-more-link">더보기</span>
+            </div>
+            <div class="charts-grid-row">
+              <div class="chart-card-item" data-chart="timeline-horizontal-cross" title="상하 교차 타임라인">
+                <svg width="50" height="34" viewBox="0 0 60 36"><line x1="4" y1="18" x2="56" y2="18" stroke="#1e293b" stroke-width="3"></line><line x1="14" y1="18" x2="14" y2="8" stroke="#ef4444" stroke-width="2"></line><circle cx="14" cy="8" r="4" fill="#ef4444"></circle><line x1="30" y1="18" x2="30" y2="28" stroke="#3b82f6" stroke-width="2"></line><circle cx="30" cy="28" r="4" fill="#3b82f6"></circle><line x1="46" y1="18" x2="46" y2="8" stroke="#10b981" stroke-width="2"></line><circle cx="46" cy="8" r="4" fill="#10b981"></circle></svg>
+                <span class="chart-card-label">상하 교차 연혁</span>
+              </div>
+              <div class="chart-card-item" data-chart="timeline-diamonds" title="다이아몬드 4단계 연혁도">
+                <svg width="50" height="34" viewBox="0 0 60 36"><line x1="4" y1="18" x2="56" y2="18" stroke="#94a3b8" stroke-width="2"></line><polygon points="12,12 18,18 12,24 6,18" fill="#a5f3fc" stroke="#0891b2"></polygon><polygon points="26,12 32,18 26,24 20,18" fill="#99f6e4" stroke="#0d9488"></polygon><polygon points="40,12 46,18 40,24 34,18" fill="#fef08a" stroke="#ca8a04"></polygon><polygon points="54,12 60,18 54,24 48,18" fill="#fed7aa" stroke="#ea580c"></polygon></svg>
+                <span class="chart-card-label">다이아 연혁</span>
+              </div>
+              <div class="chart-card-item" data-chart="timeline-arrow-steps" title="Step 1~4 프로세스">
+                <svg width="52" height="30" viewBox="0 0 60 32"><rect x="2" y="8" width="12" height="16" fill="#fed7aa" rx="2"></rect><rect x="16" y="8" width="12" height="16" fill="#bbf7d0" rx="2"></rect><rect x="30" y="8" width="12" height="16" fill="#a5f3fc" rx="2"></rect><rect x="44" y="8" width="12" height="16" fill="#bfdbfe" rx="2"></rect></svg>
+                <span class="chart-card-label">Step 4단계</span>
+              </div>
+              <div class="chart-card-item" data-chart="timeline-roadmap-5" title="5단계 원형 로드맵">
+                <svg width="52" height="30" viewBox="0 0 60 32"><line x1="6" y1="16" x2="54" y2="16" stroke="#e2e8f0" stroke-width="3"></line><circle cx="10" cy="16" r="5" fill="#a7f3d0"></circle><circle cx="20" cy="16" r="5" fill="#6ee7b7"></circle><circle cx="30" cy="16" r="5" fill="#34d399"></circle><circle cx="40" cy="16" r="5" fill="#10b981"></circle><circle cx="50" cy="16" r="5" fill="#059669"></circle></svg>
+                <span class="chart-card-label">5단계 로드맵</span>
+              </div>
+            </div>
+
+            <!-- 7. 사분면 그래프 (Image 1) -->
+            <div class="section-subhead">
+              <span>사분면 그래프</span>
+              <span class="subhead-more-link">더보기</span>
+            </div>
+            <div class="charts-grid-row">
+              <div class="chart-card-item" data-chart="quadrant-oval" title="타원 버블 4개 사분면">
+                <svg width="44" height="40" viewBox="0 0 48 42"><line x1="24" y1="4" x2="24" y2="38" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="2 2"></line><line x1="4" y1="21" x2="44" y2="21" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="2 2"></line><ellipse cx="14" cy="12" rx="8" ry="6" fill="#fed7aa"></ellipse><ellipse cx="34" cy="12" rx="8" ry="6" fill="#bfdbfe"></ellipse><ellipse cx="14" cy="30" rx="8" ry="6" fill="#fef08a"></ellipse><ellipse cx="34" cy="30" rx="8" ry="6" fill="#bbf7d0"></ellipse></svg>
+                <span class="chart-card-label">버블 사분면</span>
+              </div>
+              <div class="chart-card-item" data-chart="quadrant-puzzle" title="4색 원형 사분면">
+                <svg width="40" height="40" viewBox="0 0 44 44"><circle cx="14" cy="14" r="8" fill="#fed7aa"></circle><circle cx="30" cy="14" r="8" fill="#fbcfe8"></circle><circle cx="14" cy="30" r="8" fill="#bbf7d0"></circle><circle cx="30" cy="30" r="8" fill="#bfdbfe"></circle></svg>
+                <span class="chart-card-label">원형 4분면</span>
+              </div>
+              <div class="chart-card-item" data-chart="quadrant-boxes" title="정방형 4구역 사분면">
+                <svg width="40" height="40" viewBox="0 0 44 44"><rect x="3" y="3" width="18" height="18" rx="4" fill="#bbf7d0" stroke="#16a34a"></rect><rect x="23" y="3" width="18" height="18" rx="4" fill="#bbf7d0" stroke="#16a34a"></rect><rect x="3" y="23" width="18" height="18" rx="4" fill="#bbf7d0" stroke="#16a34a"></rect><rect x="23" y="23" width="18" height="18" rx="4" fill="#bbf7d0" stroke="#16a34a"></rect></svg>
+                <span class="chart-card-label">정방형 사분면</span>
+              </div>
+              <div class="chart-card-item" data-chart="quadrant-axis" title="축선(중요도/긴급도) 사분면">
+                <svg width="42" height="40" viewBox="0 0 46 42"><line x1="23" y1="4" x2="23" y2="38" stroke="#0f172a" stroke-width="2"></line><line x1="4" y1="21" x2="42" y2="21" stroke="#0f172a" stroke-width="2"></line><rect x="7" y="7" width="12" height="10" fill="#38bdf8" rx="2"></rect><rect x="27" y="7" width="12" height="10" fill="#0284c7" rx="2"></rect><rect x="7" y="25" width="12" height="10" fill="#0369a1" rx="2"></rect><rect x="27" y="25" width="12" height="10" fill="#075985" rx="2"></rect></svg>
+                <span class="chart-card-label">축선 매트릭스</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 5. Uploads Tab (Max 10 per batch, Max 40 capacity) -->
+          <div id="panel-uploads" class="sub-panel-view" style="display: none;">
+            <div id="upload-dropzone" class="upload-dropzone">
+              <input type="file" id="image-file-input" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple style="display: none;" />
+              <div class="upload-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              </div>
+              <div class="upload-text-main">사진 다중 업로드</div>
+              <div class="upload-text-sub">클릭하거나 여러 사진을 끌어다 놓으세요 (1회 최대 10장)</div>
+              <div class="format-tags">
+                <span class="format-tag">JPG</span>
+                <span class="format-tag">JPEG</span>
+                <span class="format-tag">PNG</span>
+                <span class="format-tag" style="background: #e0f2fe; color: #0284c7; font-weight: 700;">최대 40장 보관</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 18px; font-size: 13px; font-weight: 700; color: #334155; display: flex; align-items: center; justify-content: space-between;">
+              <span id="upload-count-label">내 업로드 목록 (0/40)</span>
+              <button id="btn-clear-uploads" style="border: none; background: transparent; font-size: 11px; color: #ef4444; cursor: pointer; font-weight: 600;">전체 삭제</button>
+            </div>
+            <div id="uploads-gallery" class="uploads-gallery"></div>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- Center Canvas Viewport -->
+      <section class="canvas-viewport">
+        
+        <!-- Contextual Object Floating Toolbar (Image 2 Style for Text, Image 1 Style for Elements) -->
+        <div id="floating-toolbar" class="floating-toolbar-container hidden">
+          
+          <!-- Element / Shape / Icon Only Group (Image 1 Style) -->
+          <div class="tb-group shape-only-tool" style="display: none;">
+            <!-- 1. Color Circle Picker (Image 1, 2) -->
+            <button id="tb-shape-color-btn" class="tb-btn" title="색상 변경 (팔레트 및 HEX 코드 입력)">
+              <div id="shape-color-circle" style="width: 22px; height: 22px; border-radius: 50%; background: #00c4cc; border: 2px solid #cbd5e1; box-shadow: 0 1px 4px rgba(0,0,0,0.2);"></div>
+            </button>
+
+            <!-- 2. Border & Stroke Width (≡) -->
+            <button id="tb-shape-border-btn" class="tb-btn" title="선의 두께 및 테두리 스타일">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+
+            <!-- 3. Corner Radius (◜ 꼭짓점 라운드 곡률) -->
+            <button id="tb-shape-radius-btn" class="tb-btn" title="모서리 라운드 (꼭짓점 곡률)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 20V10a6 6 0 0 1 6-6h10"></path></svg>
+            </button>
+          </div>
+
+          <div class="tb-divider shape-only-tool" style="display: none;"></div>
+
+          <!-- Text Only Group: Font Family -->
+          <div class="tb-group text-only-tool">
+            <button id="tb-font-family" class="font-select-btn" title="글꼴 선택">
+              <span id="current-font-name">프리텐다드 Bold</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+          </div>
+
+          <!-- Text Only Group: Font Size -->
+          <div class="tb-group text-only-tool">
+            <div class="font-size-stepper">
+              <button id="tb-font-minus" class="stepper-btn" title="글자 크기 축소">-</button>
+              <input type="text" id="tb-font-size" class="font-size-input" value="24" />
+              <button id="tb-font-plus" class="stepper-btn" title="글자 크기 확대">+</button>
+            </div>
+          </div>
+
+          <!-- Text Only Group: Text Color & Highlight -->
+          <div class="tb-group text-only-tool">
+            <label class="tb-btn" title="글자 색상" style="cursor: pointer;">
+              <span style="font-weight: 800; font-size: 14px;">A</span>
+              <div id="text-color-indicator" class="color-indicator"></div>
+              <input type="color" id="tb-text-color-picker" value="#111827" style="position: absolute; opacity: 0; width: 0; height: 0;" />
+            </label>
+            <label class="tb-btn" title="글자 배경색/형광펜" style="cursor: pointer;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9"></path><path d="M18 16l4-4-5-5-4 4"></path></svg>
+              <div id="bg-color-indicator" class="color-indicator" style="background: transparent;"></div>
+              <input type="color" id="tb-bg-color-picker" value="#ffff00" style="position: absolute; opacity: 0; width: 0; height: 0;" />
+            </label>
+          </div>
+
+          <div class="tb-divider text-only-tool"></div>
+
+          <!-- Text Styles (B, I, U, Strike) -->
+          <div class="tb-group text-only-tool">
+            <button id="tb-btn-bold" class="tb-btn" title="굵게 (Bold)"><span style="font-weight: 900;">B</span></button>
+            <button id="tb-btn-italic" class="tb-btn" title="기울임 (Italic)"><span style="font-style: italic; font-weight: 700;">I</span></button>
+            <button id="tb-btn-underline" class="tb-btn" title="밑줄 (Underline)"><span style="text-decoration: underline; font-weight: 700;">U</span></button>
+            <button id="tb-btn-strike" class="tb-btn" title="취소선"><span style="text-decoration: line-through; font-size: 13px;">A²</span></button>
+            <button id="tb-btn-align" class="tb-btn" title="텍스트 정렬">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg>
+            </button>
+            <button id="tb-btn-adjust" class="tb-label-btn" title="자간 및 행간 조정">글자 조정</button>
+          </div>
+
+          <!-- Universal Controls (Both Text & Shapes) -->
+          <div class="tb-group">
+            <!-- 4. Effect (Shadow & Stroke) -->
+            <button id="tb-btn-effect" class="tb-label-btn" title="그림자 넣을건지 말건지 설정">
+              효과
+            </button>
+
+            <!-- 5. Opacity (0% ~ 100% Graph Slider) -->
+            <button id="tb-btn-opacity" class="tb-btn" title="불투명도 (0%~100% 슬라이더)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 0 20Z" fill="currentColor"></path></svg>
+            </button>
+
+            <!-- 6. Flip (좌우 / 상하 반전) -->
+            <button id="tb-btn-flip" class="tb-label-btn shape-only-tool" title="좌우/상하 반전" style="display: none;">
+              반전
+            </button>
+
+            <!-- 7. Align to Canvas -->
+            <button id="tb-btn-align-canvas" class="tb-label-btn" title="캔버스 정렬">
+              정렬
+            </button>
+
+            <!-- 8. Transform (Size / Angle / Skew) -->
+            <button id="tb-btn-transform" class="tb-label-btn" title="기울기, 회전 및 크기 조절">
+              크기·위치
+            </button>
+
+            <!-- 9. Sequential Arrange (Order) -->
+            <button id="tb-btn-arrange" class="tb-label-btn" title="순차배열 (앞으로/뒤로/맨앞/맨뒤)">
+              순서
+            </button>
+
+            <!-- 10. Group / Ungroup Button (Ctrl+G / Ctrl+Shift+G) -->
+            <button id="tb-btn-group" class="tb-label-btn" title="그룹화 (Ctrl+G) / 그룹 해제 (Ctrl+Shift+G)" style="display: none; background: #f0fdf4; color: #16a34a; font-weight: 700; border: 1px solid #bbf7d0;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+              <span id="tb-group-btn-label">그룹화 (Ctrl+G)</span>
+            </button>
+
+            <!-- 11. Chart Dynamic Data Edit Button -->
+            <button id="tb-btn-chart-data" class="tb-label-btn chart-only-tool" title="차트 수치 및 퍼센트 실시간 편집" style="display: none; background: #e0f2fe; color: #0284c7; font-weight: 700; border: 1px solid #bae6fd;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+              <span>데이터 편집</span>
+            </button>
+
+            <!-- Lock Toggle Button -->
+            <button id="tb-btn-lock" class="tb-btn" title="요소 잠금 (위치/크기/순서 고정)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+            </button>
+
+            <!-- Duplicate & Delete -->
+            <button id="tb-btn-duplicate" class="tb-btn" title="복제 (Cmd+D)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+            <button id="tb-btn-delete" class="tb-btn" title="삭제 (Delete)" style="color: #ef4444;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Popovers container -->
+        <!-- 0. Dynamic Chart Data Editor Popover -->
+        <div id="popover-chart-data" class="toolbar-popover" style="width: 300px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+            <div style="font-size: 13px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+              <span>차트 데이터 실시간 편집</span>
+            </div>
+            <span id="chart-type-badge" style="font-size: 11px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 10px;">게이지</span>
+          </div>
+
+          <!-- Gauge Control Section (Circle, Vertical, Horizontal, Semi) -->
+          <div id="chart-gauge-control-group">
+            <div class="slider-control-group">
+              <div class="slider-label-row">
+                <span style="font-size: 12px; font-weight: 600; color: #475569;">게이지 양 조절 (0%~100%)</span>
+                <span id="val-chart-gauge" style="font-weight: 800; color: #00c4cc; font-size: 14px;">75%</span>
+              </div>
+              <input type="range" id="input-chart-gauge-pct" min="0" max="100" value="75" class="slider-input" />
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; background: #f8fafc; padding: 8px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <span style="font-size: 12px; font-weight: 600; color: #64748b;">퍼센트 직접 입력:</span>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <input type="number" id="input-chart-gauge-num" min="0" max="100" value="75" style="width: 58px; height: 28px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-weight: 800; font-size: 13px; color: #1e293b;" />
+                <span style="font-size: 13px; font-weight: 800; color: #475569;">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Bar Control Section (Bar 1, 2, 3, 4) -->
+          <div id="chart-bar-control-group" style="display: none;">
+            <div style="font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px;">막대 그래프 높이/수치 조절 (0~100)</div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="slider-control-group" style="margin:0;">
+                <div class="slider-label-row">
+                  <span style="font-size: 11px; color:#f43f5e; font-weight:700;">■ 막대 1 (핑크)</span>
+                  <span id="val-bar-1" style="font-size: 12px; font-weight:800; color:#f43f5e;">40</span>
+                </div>
+                <input type="range" id="input-bar-1" min="5" max="100" value="40" class="slider-input" />
+              </div>
+              <div class="slider-control-group" style="margin:0;">
+                <div class="slider-label-row">
+                  <span style="font-size: 11px; color:#00c4cc; font-weight:700;">■ 막대 2 (민트)</span>
+                  <span id="val-bar-2" style="font-size: 12px; font-weight:800; color:#00c4cc;">70</span>
+                </div>
+                <input type="range" id="input-bar-2" min="5" max="100" value="70" class="slider-input" />
+              </div>
+              <div class="slider-control-group" style="margin:0;">
+                <div class="slider-label-row">
+                  <span style="font-size: 11px; color:#3b82f6; font-weight:700;">■ 막대 3 (블루)</span>
+                  <span id="val-bar-3" style="font-size: 12px; font-weight:800; color:#3b82f6;">55</span>
+                </div>
+                <input type="range" id="input-bar-3" min="5" max="100" value="55" class="slider-input" />
+              </div>
+              <div class="slider-control-group" style="margin:0;">
+                <div class="slider-label-row">
+                  <span style="font-size: 11px; color:#f59e0b; font-weight:700;">■ 막대 4 (옐로우)</span>
+                  <span id="val-bar-4" style="font-size: 12px; font-weight:800; color:#f59e0b;">85</span>
+                </div>
+                <input type="range" id="input-bar-4" min="5" max="100" value="85" class="slider-input" />
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #64748b; line-height: 1.4;">
+            💡 차트 안의 글자는 더블 클릭하여 키보드로 바로 타이핑 수정할 수 있습니다.
+          </div>
+        </div>
+
+        <!-- 1. Advanced Color Picker Popover (Image 2 Style) -->
+        <div id="popover-advanced-color" class="toolbar-popover" style="width: 290px;">
+          <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 10px;">색상 선택 (팔레트 및 코드 입력)</div>
+          
+          <!-- Color Spectrum / Saturation Canvas -->
+          <div id="color-spectrum-area" class="color-spectrum-box">
+            <div id="color-spectrum-picker" class="spectrum-picker-dot"></div>
+          </div>
+          
+          <!-- Hue Slider -->
+          <div style="margin: 10px 0;">
+            <input type="range" id="input-hue-slider" min="0" max="360" value="180" class="hue-slider-bar" />
+          </div>
+
+          <!-- HEX Input Box (Image 2) -->
+          <div class="hex-input-row">
+            <div id="active-color-swatch" style="width: 28px; height: 28px; border-radius: 50%; background: #70798F; border: 1px solid #cbd5e1;"></div>
+            <div class="hex-text-wrapper">
+              <span>#</span>
+              <input type="text" id="input-hex-code" value="70798F" maxlength="6" />
+            </div>
+            <button id="btn-apply-hex" class="btn-hex-apply">적용</button>
+          </div>
+
+          <!-- Preset Color Palette Dots (Image 1, 2) -->
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; margin: 12px 0 6px 0;">기본 팔레트</div>
+          <div class="palette-dots-grid">
+            <div class="palette-dot" data-color="#111827" style="background:#111827;"></div>
+            <div class="palette-dot" data-color="#475569" style="background:#475569;"></div>
+            <div class="palette-dot" data-color="#70798F" style="background:#70798F;"></div>
+            <div class="palette-dot" data-color="#94a3b8" style="background:#94a3b8;"></div>
+            <div class="palette-dot" data-color="#cbd5e1" style="background:#cbd5e1;"></div>
+            <div class="palette-dot" data-color="#ffffff" style="background:#ffffff; border:1px solid #cbd5e1;"></div>
+            
+            <div class="palette-dot" data-color="#ef4444" style="background:#ef4444;"></div>
+            <div class="palette-dot" data-color="#f97316" style="background:#f97316;"></div>
+            <div class="palette-dot" data-color="#f59e0b" style="background:#f59e0b;"></div>
+            <div class="palette-dot" data-color="#10b981" style="background:#10b981;"></div>
+            <div class="palette-dot" data-color="#00c4cc" style="background:#00c4cc;"></div>
+            <div class="palette-dot" data-color="#0284c7" style="background:#0284c7;"></div>
+            <div class="palette-dot" data-color="#3b82f6" style="background:#3b82f6;"></div>
+            <div class="palette-dot" data-color="#8b5cf6" style="background:#8b5cf6;"></div>
+            <div class="palette-dot" data-color="#ec4899" style="background:#ec4899;"></div>
+          </div>
+        </div>
+
+        <!-- 2. Border & Stroke Width Popover -->
+        <div id="popover-shape-border" class="toolbar-popover" style="width: 250px;">
+          <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 10px;">선의 두께 (Border Width)</div>
+          <div class="slider-control-group">
+            <div class="slider-label-row">
+              <span>테두리 선 굵기</span>
+              <span id="val-border-width">0px</span>
+            </div>
+            <input type="range" id="input-border-width" class="slider-input" min="0" max="30" value="0" />
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+            <span style="font-size: 12px; font-weight: 600; color: #475569;">테두리 색상:</span>
+            <input type="color" id="input-border-color" value="#1e293b" style="border:none; width:30px; height:30px; cursor:pointer;" />
+          </div>
+        </div>
+
+        <!-- 3. Corner Radius Popover (꼭짓점 라운드) -->
+        <div id="popover-shape-radius" class="toolbar-popover" style="width: 250px;">
+          <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 10px;">모서리 곡률 (꼭짓점 라운드)</div>
+          <div class="slider-control-group">
+            <div class="slider-label-row">
+              <span>라운드 정도</span>
+              <span id="val-corner-radius">0px</span>
+            </div>
+            <input type="range" id="input-corner-radius" class="slider-input" min="0" max="100" value="0" />
+          </div>
+        </div>
+
+        <!-- 4. Shadow Effect Popover (그림자를 넣을건지 말건지) -->
+        <div id="popover-effect" class="toolbar-popover" style="width: 260px;">
+          <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 10px;">효과 (그림자)</div>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 0;">
+            <input type="checkbox" id="chk-shadow" style="width: 16px; height: 16px; accent-color: var(--primary);" />
+            <span>그림자 넣기 (Shadow On/Off)</span>
+          </label>
+          <div id="shadow-details-box" style="margin-top: 10px; display: none; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 12px; color: #64748b;">그림자 색상:</span>
+              <input type="color" id="shadow-color-picker" value="#000000" style="border:none; width:26px; height:26px; cursor:pointer;" />
+            </div>
+            <div class="slider-control-group">
+              <div class="slider-label-row">
+                <span>그림자 흐림 (Blur)</span>
+                <span id="val-shadow-blur">15</span>
+              </div>
+              <input type="range" id="input-shadow-blur" class="slider-input" min="2" max="40" value="15" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Opacity Popover (숫자도 보이는 일자 그래프 슬라이더) -->
+        <div id="popover-opacity" class="toolbar-popover" style="width: 240px;">
+          <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 10px;">불투명도 (Opacity)</div>
+          <div class="slider-control-group">
+            <div class="slider-label-row">
+              <span style="font-size:12px; color:#64748b;">0% (완전 투명)</span>
+              <span id="val-opacity" style="font-size:14px; font-weight:800; color:var(--primary-dark);">100%</span>
+              <span style="font-size:12px; color:#64748b;">100% (선명)</span>
+            </div>
+            <!-- Linear Graph / Range Slider -->
+            <input type="range" id="input-opacity" class="slider-input" min="0" max="100" value="100" style="height: 6px; margin: 8px 0;" />
+          </div>
+        </div>
+
+        <!-- 6. Flip Popover (좌우 / 상하 반전) -->
+        <div id="popover-flip" class="toolbar-popover" style="width: 180px;">
+          <div style="font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 6px;">반전 (뒤집기)</div>
+          <button id="btn-flip-x" class="menu-item" style="width: 100%; border: none; background: transparent;">
+            <span>↔ 좌우 반전</span>
+          </button>
+          <button id="btn-flip-y" class="menu-item" style="width: 100%; border: none; background: transparent;">
+            <span>↕ 상하 반전</span>
+          </button>
+        </div>
+
+        <!-- 7. Fonts Dropdown -->
+        <div id="popover-fonts" class="toolbar-popover" style="width: 200px;">
+          <div class="menu-item font-choice-item" data-font="Pretendard">프리텐다드 Bold</div>
+          <div class="menu-item font-choice-item" data-font="Noto Sans KR">노토 산스 KR</div>
+          <div class="menu-item font-choice-item" data-font="Black Han Sans">블랙한산스 (타이틀용)</div>
+          <div class="menu-item font-choice-item" data-font="Nanum Gothic">나눔고딕</div>
+        </div>
+
+        <!-- 8. Text Adjust Popover -->
+        <div id="popover-text-adjust" class="toolbar-popover" style="width: 240px;">
+          <div class="slider-control-group">
+            <div class="slider-label-row">
+              <span>글자 자간</span>
+              <span id="val-letter-spacing">0</span>
+            </div>
+            <input type="range" id="input-letter-spacing" class="slider-input" min="-20" max="50" value="0" />
+          </div>
+          <div class="slider-control-group">
+            <div class="slider-label-row">
+              <span>행간 (줄 간격)</span>
+              <span id="val-line-height">1.2</span>
+            </div>
+            <input type="range" id="input-line-height" class="slider-input" min="0.8" max="2.5" step="0.1" value="1.2" />
+          </div>
+        </div>
+
+        <!-- 9. Canvas Align Popover -->
+        <div id="popover-align-canvas" class="toolbar-popover" style="width: 230px;">
+          <div style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:8px;">캔버스 기준 맞춤</div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+            <button class="menu-item align-option-btn" data-align="center-h">가로 중앙</button>
+            <button class="menu-item align-option-btn" data-align="center-v">세로 중앙</button>
+            <button class="menu-item align-option-btn" data-align="left">왼쪽 맞춤</button>
+            <button class="menu-item align-option-btn" data-align="right">오른쪽 맞춤</button>
+            <button class="menu-item align-option-btn" data-align="top">상단 맞춤</button>
+            <button class="menu-item align-option-btn" data-align="bottom">하단 맞춤</button>
+          </div>
+        </div>
+
+        <!-- 10. Transform / Skew / Rotation Popover -->
+        <div id="popover-transform" class="toolbar-popover" style="width: 260px;">
+          <div style="font-size:13px; font-weight:700; color:#1e293b; margin-bottom:10px;">기울기 및 회전 설정</div>
+          <div class="slider-control-group">
+            <div class="slider-label-row">
+              <span>회전 각도 (Angle)</span>
+              <span id="val-rotation">0°</span>
+            </div>
+            <input type="range" id="input-rotation" class="slider-input" min="0" max="360" value="0" />
+          </div>
+          <div class="slider-control-group">
+            <div class="slider-label-row">
+              <span>가로 기울기 (Skew X)</span>
+              <span id="val-skew-x">0°</span>
+            </div>
+            <input type="range" id="input-skew-x" class="slider-input" min="-45" max="45" value="0" />
+          </div>
+          <div class="slider-control-group">
+            <div class="slider-label-row">
+              <span>세로 기울기 (Skew Y)</span>
+              <span id="val-skew-y">0°</span>
+            </div>
+            <input type="range" id="input-skew-y" class="slider-input" min="-45" max="45" value="0" />
+          </div>
+        </div>
+
+        <!-- 11. Arrange Popover -->
+        <div id="popover-arrange" class="toolbar-popover" style="width: 200px;">
+          <div style="font-size:12px; font-weight:700; color:#64748b; margin-bottom:6px;">순차배열 (계층 이동)</div>
+          <div id="btn-order-front" class="menu-item">
+            <span>맨 앞으로</span>
+            <span style="font-size:11px; color:#94a3b8;">Top</span>
+          </div>
+          <div id="btn-order-forward" class="menu-item">
+            <span>앞으로</span>
+            <span style="font-size:11px; color:#94a3b8;">+1</span>
+          </div>
+          <div id="btn-order-backward" class="menu-item">
+            <span>뒤로</span>
+            <span style="font-size:11px; color:#94a3b8;">-1</span>
+          </div>
+          <div id="btn-order-back" class="menu-item">
+            <span>맨 뒤로</span>
+            <span style="font-size:11px; color:#94a3b8;">Bottom</span>
+          </div>
+        </div>
+
+        <!-- Canvas Stage Area -->
+        <div id="canvas-stage-area" class="canvas-stage">
+          <div id="canvas-wrapper" class="canvas-wrapper">
+            <canvas id="main-fabric-canvas"></canvas>
+            <!-- Real-time Rotation & Skew Angle Badge Tooltip -->
+            <div id="rotation-angle-badge" class="rotation-badge" style="display: none;">0°</div>
+          </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <footer class="bottom-bar">
+          <div class="bottom-left-slides">
+            <div id="slides-list" style="display:flex; gap:8px;"></div>
+            <button id="btn-add-slide" class="add-slide-btn" title="새 슬라이드 추가">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+
+          <div class="bottom-right-controls">
+            <div class="zoom-controller">
+              <button id="btn-zoom-out" class="zoom-btn" title="축소">-</button>
+              <span id="zoom-percentage">56%</span>
+              <button id="btn-zoom-in" class="zoom-btn" title="확대">+</button>
+              <button id="btn-zoom-fit" class="zoom-btn" title="화면에 맞춤" style="margin-left:4px; font-weight:600;">맞춤</button>
+            </div>
+          </div>
+        </footer>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Size Modal / Popover Backdrop (Image 3 Style) -->
+  <div id="popover-backdrop" class="popover-backdrop"></div>
+
+  <!-- Download Modal Backdrop (Image 1 & 2 Style) -->
+  <div id="download-modal-backdrop" class="popover-backdrop" style="display: none; z-index: 998;"></div>
+
+  <!-- Download Modal (Images 1 & 2 Style) -->
+  <div id="modal-download" class="download-modal-box" style="display: none;">
+    <!-- Modal Header -->
+    <div class="modal-download-header">
+      <span class="modal-download-title">다운로드 / 내보내기</span>
+      <button id="btn-close-download-modal" class="modal-close-btn" title="닫기">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-download-body">
+      <!-- 1. File Format Selector (Image 1 & 2) -->
+      <div class="download-field-group">
+        <label class="download-field-label">파일 형식</label>
+        
+        <!-- Dropdown Trigger Button -->
+        <div id="format-select-trigger" class="format-trigger-btn">
+          <span id="selected-format-name">PNG</span>
+          <svg id="format-arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+
+        <!-- Dropdown Menu (Image 2 Style) -->
+        <div id="format-dropdown-menu" class="format-dropdown-list" style="display: none;">
+          <!-- PNG (권장) -->
+          <div class="format-option-item active" data-format="png" data-name="PNG" data-ext="png" data-mime="image/png">
+            <div class="format-opt-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <div class="format-opt-text">
+                <div class="format-opt-title-row">
+                  <span class="format-opt-title">PNG</span>
+                  <span class="badge-recommended">권장</span>
+                </div>
+                <div class="format-opt-desc">배경이 투명한 고품질 이미지</div>
+              </div>
+            </div>
+            <div class="format-opt-check">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- JPG -->
+          <div class="format-option-item" data-format="jpg" data-name="JPG" data-ext="jpg" data-mime="image/jpeg">
+            <div class="format-opt-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <div class="format-opt-text">
+                <div class="format-opt-title-row">
+                  <span class="format-opt-title">JPG</span>
+                </div>
+                <div class="format-opt-desc">공유에 적합한 이미지</div>
+              </div>
+            </div>
+            <div class="format-opt-check" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- PDF (웹용) -->
+          <div class="format-option-item" data-format="pdf-web" data-name="PDF (웹용)" data-ext="pdf" data-mime="application/pdf">
+            <div class="format-opt-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <div class="format-opt-text">
+                <div class="format-opt-title-row">
+                  <span class="format-opt-title">PDF (웹용)</span>
+                </div>
+                <div class="format-opt-desc">문서에 적합한 파일</div>
+              </div>
+            </div>
+            <div class="format-opt-check" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- PDF (인쇄용) -->
+          <div class="format-option-item" data-format="pdf-print" data-name="PDF (인쇄용)" data-ext="pdf" data-mime="application/pdf">
+            <div class="format-opt-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><circle cx="12" cy="14" r="3"></circle></svg>
+              <div class="format-opt-text">
+                <div class="format-opt-title-row">
+                  <span class="format-opt-title">PDF (인쇄용)</span>
+                </div>
+                <div class="format-opt-desc">벡터를 포함하는 인쇄용 파일</div>
+              </div>
+            </div>
+            <div class="format-opt-check" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- PPTX -->
+          <div class="format-option-item" data-format="pptx" data-name="PPTX" data-ext="pptx" data-mime="application/vnd.openxmlformats-officedocument.presentationml.presentation">
+            <div class="format-opt-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+              <div class="format-opt-text">
+                <div class="format-opt-title-row">
+                  <span class="format-opt-title">PPTX</span>
+                </div>
+                <div class="format-opt-desc">텍스트 수정이 가능한 파워포인트 파일</div>
+              </div>
+            </div>
+            <div class="format-opt-check" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- MP4 -->
+          <div class="format-option-item" data-format="mp4" data-name="MP4" data-ext="mp4" data-mime="video/mp4">
+            <div class="format-opt-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+              <div class="format-opt-text">
+                <div class="format-opt-title-row">
+                  <span class="format-opt-title">MP4</span>
+                </div>
+                <div class="format-opt-desc">고화질 동영상</div>
+              </div>
+            </div>
+            <div class="format-opt-check" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- GIF -->
+          <div class="format-option-item" data-format="gif" data-name="GIF" data-ext="gif" data-mime="image/gif">
+            <div class="format-opt-left">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <div class="format-opt-text">
+                <div class="format-opt-title-row">
+                  <span class="format-opt-title">GIF</span>
+                </div>
+                <div class="format-opt-desc">소리 없이 움직이는 이미지</div>
+              </div>
+            </div>
+            <div class="format-opt-check" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transparent Background Checkbox (Image 1) -->
+      <label id="row-transparent-bg" class="download-checkbox-row">
+        <input type="checkbox" id="chk-transparent-bg" />
+        <span>투명한 배경</span>
+      </label>
+
+      <!-- 2. Scale / Size (Image 1) -->
+      <div class="download-field-group">
+        <label class="download-field-label">크기</label>
+        <select id="select-download-scale" class="download-select-field">
+          <option value="1">1배 (1080 × 1080 px)</option>
+          <option value="1.5">1.5배 (1620 × 1620 px)</option>
+          <option value="2">2배 (2160 × 2160 px, 초고화질)</option>
+          <option value="3">3배 (3240 × 3240 px, 인쇄급)</option>
+        </select>
+      </div>
+
+      <!-- 3. Page Selection (Image 1) -->
+      <div class="download-field-group">
+        <label class="download-field-label">페이지 선택</label>
+        <select id="select-download-pages" class="download-select-field">
+          <option value="all">모든 페이지 (1~10)</option>
+          <option value="current">현재 페이지만 (1페이지)</option>
+        </select>
+      </div>
+
+      <!-- Merge to Single Image Checkbox (Image 1) -->
+      <label class="download-checkbox-row">
+        <input type="checkbox" id="chk-merge-slides" />
+        <span>한 장의 이미지로 합치기</span>
+      </label>
+
+      <!-- 4. File Name & Save Location Input (User Explicit Request) -->
+      <div class="download-field-group" style="margin-top: 10px;">
+        <label class="download-field-label">저장 파일 이름</label>
+        <div class="filename-input-wrapper">
+          <input type="text" id="input-download-filename" value="카드뉴스_디자인" />
+          <span id="label-download-ext">.png</span>
+        </div>
+        <div class="save-location-notice">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00c4cc" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <span>저장 버튼 클릭 시 저장할 폴더 위치를 직접 선택할 수 있습니다.</span>
+        </div>
+      </div>
+
+      <!-- Download Info Card (Image 1) -->
+      <div class="download-info-card">
+        <div class="download-info-title">다운로드 정보</div>
+        <div class="download-info-list">
+          <div class="download-info-item">• <span id="info-page-count">1 페이지</span></div>
+          <div class="download-info-item">• <span id="info-resolution">1080 × 1080 px</span></div>
+        </div>
+        <a href="#" class="copyright-guide-link" onclick="event.preventDefault(); alert('상업적 이용 및 무료 폰트/요소 저작권이 완벽히 보호되는 디자인입니다.');">
+          알기 쉬운 저작권 가이드
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+      </div>
+
+      <!-- High Resolution Download Button (Image 1) -->
+      <button id="btn-execute-download" class="btn-high-download">
+        고해상도 다운로드
+      </button>
+    </div>
+  </div>
+  
+  <div id="size-popover" class="size-popover">
+    <div class="size-presets-list">
+      <div class="popover-title" style="margin-bottom:8px;">
+        <span>사이즈 프리셋</span>
+      </div>
+      <button class="size-preset-btn" data-w="1080" data-h="1080">
+        <span>1:1 기본형 (정사각형)</span>
+        <span class="size-preset-dim">1080×1080 px</span>
+      </button>
+      <button class="size-preset-btn" data-w="1920" data-h="1080">
+        <span>16:9 와이드 (가로형)</span>
+        <span class="size-preset-dim">1920×1080 px</span>
+      </button>
+      <button class="size-preset-btn" data-w="1080" data-h="1920">
+        <span>9:16 스토리/릴스 (세로형)</span>
+        <span class="size-preset-dim">1080×1920 px</span>
+      </button>
+    </div>
+
+    <!-- Direct Custom Input (Image 3) -->
+    <div class="custom-size-box">
+      <div class="popover-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path></svg>
+        <span>직접 입력</span>
+      </div>
+
+      <div class="custom-inputs-row">
+        <input type="number" id="custom-width-input" class="size-input-field" value="1080" min="100" max="4000" />
+        
+        <button id="btn-ratio-lock" class="ratio-lock-btn" title="비율 고정 토글">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+        </button>
+
+        <input type="number" id="custom-height-input" class="size-input-field" value="1080" min="100" max="4000" />
+
+        <select class="unit-select">
+          <option value="px">px</option>
+        </select>
+      </div>
+
+      <button id="btn-apply-size" class="size-apply-btn">적용</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/templates.js"></script>
+  <script src="js/canvas-manager.js"></script>
+  <script src="js/toolbar.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
